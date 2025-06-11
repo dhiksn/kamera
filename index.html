@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Photobooth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #ef233c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #fff, #f72585);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .photobooth-container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .camera-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 1.5rem;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        #video {
+            width: 100%;
+            display: block;
+            transform: scaleX(-1);
+        }
+        
+        #canvas {
+            display: none;
+            width: 100%;
+        }
+        
+        .viewfinder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border: 2px dashed rgba(255,255,255,0.5);
+            border-radius: 15px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-accent {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .btn-accent:hover {
+            background-color: #d91a6d;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #3aa8d0;
+            transform: translateY(-2px);
+        }
+        
+        .btn i {
+            font-size: 1.2rem;
+        }
+        
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+        
+        .countdown.active {
+            opacity: 1;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            border: 3px solid white;
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .filter-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .filter-option.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent);
+        }
+        
+        .filter-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .filter-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 0.2rem;
+        }
+        
+        .gallery-section {
+            width: 100%;
+            margin-top: 2rem;
+        }
+        
+        .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .gallery-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .clear-btn {
+            background-color: var(--danger);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .clear-btn:hover {
+            background-color: #d90429;
+            transform: translateY(-2px);
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            width: 100%;
+        }
+        
+        .gallery-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            aspect-ratio: 1/1;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        .gallery-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .gallery-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 0.5rem;
+            display: flex;
+            justify-content: space-around;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .gallery-item:hover .gallery-actions {
+            opacity: 1;
+        }
+        
+        .gallery-action-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .gallery-action-btn:hover {
+            background: var(--accent);
+            transform: scale(1.1);
+        }
+        
+        .settings-panel {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            padding: 2rem;
+            transition: right 0.3s ease;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        
+        .settings-panel.open {
+            right: 0;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .settings-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .close-settings {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .setting-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .setting-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .setting-control {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .setting-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 999;
+            transition: opacity 0.3s;
+        }
+        
+        .flash.active {
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .photobooth-container {
+                padding: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .settings-panel.open {
+                right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Premium Photobooth</h1>
+        <p>Capture your special moments with style</p>
+    </div>
+    
+    <div class="photobooth-container">
+        <div class="camera-wrapper">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            <div class="viewfinder"></div>
+            <div class="countdown" id="countdown">3</div>
+            <div class="flash" id="flash"></div>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-option" data-filter="none">
+                <div class="filter-preview" style="background: transparent;"></div>
+                <div class="filter-name">Normal</div>
+            </div>
+            <div class="filter-option" data-filter="vintage">
+                <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=200&q=80" class="filter-preview">
+                <div class="filter-name">Vintage</div>
+            </div>
+            <div class="filter-option" data-filter="blackwhite">
+                <img src="https://images.unsplash.com/photo-1554446421-d5ba9a8c6f75?w=200&q=80" class="filter-preview">
+                <div class="filter-name">B&W</div>
+            </div>
+            <div class="filter-option" data-filter="sepia">
+                <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&q=80" class="filter-preview">
+                <div class="filter-name">Sepia</div>
+            </div>
+            <div class="filter-option" data-filter="cool">
+                <img src="https://images.unsplash.com/photo-1569250814536-92f8f8df8bb5?w=200&q=80" class="filter-preview">
+                <div class="filter-name">Cool</div>
+            </div>
+            <div class="filter-option" data-filter="warm">
+                <img src="https://images.unsplash.com/photo-1579547945413-497e1b99dac0?w=200&q=80" class="filter-preview">
+                <div class="filter-name">Warm</div>
+            </div>
+            <div class="filter-option" data-filter="rainbow">
+                <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=200&q=80" class="filter-preview">
+                <div class="filter-name">Rainbow</div>
+            </div>
+            <div class="filter-option" data-filter="pixelate">
+                <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=200&q=80" class="filter-preview">
+                <div class="filter-name">Pixel</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="captureBtn">
+                <i class="fas fa-camera"></i> Capture
+            </button>
+            <button class="btn btn-secondary" id="retakeBtn" style="display: none;">
+                <i class="fas fa-redo"></i> Retake
+            </button>
+            <button class="btn btn-success" id="downloadBtn" style="display: none;">
+                <i class="fas fa-download"></i> Download
+            </button>
+            <button class="btn btn-accent" id="shareBtn" style="display: none;">
+                <i class="fas fa-share-alt"></i> Share
+            </button>
+            <button class="btn btn-secondary" id="settingsBtn">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+        </div>
+        
+        <div class="gallery-section">
+            <div class="gallery-header">
+                <div class="gallery-title">Your Gallery</div>
+                <div class="clear-btn" id="clearGalleryBtn">
+                    <i class="fas fa-trash"></i> Clear All
+                </div>
+            </div>
+            <div class="gallery" id="gallery"></div>
+        </div>
+    </div>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <div class="settings-title">Photobooth Settings</div>
+            <button class="close-settings" id="closeSettingsBtn">&times;</button>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Camera Mode</label>
+            <select class="setting-control" id="cameraModeSelect">
+                <option value="user">Front Camera</option>
+                <option value="environment">Rear Camera</option>
+            </select>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Resolution</label>
+            <select class="setting-control" id="resolutionSelect">
+                <option value="hd">HD (720p)</option>
+                <option value="fullhd" selected>Full HD (1080p)</option>
+                <option value="ultrahd">Ultra HD (4K)</option>
+            </select>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Countdown Timer</label>
+            <select class="setting-control" id="timerSelect">
+                <option value="0">No timer</option>
+                <option value="3">3 seconds</option>
+                <option value="5" selected>5 seconds</option>
+                <option value="10">10 seconds</option>
+            </select>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Effects</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="mirrorEffect" checked>
+                <label for="mirrorEffect">Mirror Effect (Front Camera)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="flashEffect" checked>
+                <label for="flashEffect">Flash Effect</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="gridOverlay">
+                <label for="gridOverlay">Show Grid Overlay</label>
+            </div>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Photo Layout</label>
+            <select class="setting-control" id="layoutSelect">
+                <option value="single">Single Photo</option>
+                <option value="quad" selected>Quad Layout (4 in 1)</option>
+                <option value="polaroid">Polaroid Style</option>
+                <option value="collage">Photo Collage</option>
+            </select>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Save Quality</label>
+            <input type="range" class="setting-control" id="qualityRange" min="0.1" max="1" step="0.1" value="0.8">
+            <div style="text-align: center; margin-top: 0.5rem;">
+                <span id="qualityValue">80%</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const gallery = document.getElementById('gallery');
+        const clearGalleryBtn = document.getElementById('clearGalleryBtn');
+        const countdown = document.getElementById('countdown');
+        const flash = document.getElementById('flash');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const filterOptions = document.querySelectorAll('.filter-option');
+        
+        // Settings elements
+        const cameraModeSelect = document.getElementById('cameraModeSelect');
+        const resolutionSelect = document.getElementById('resolutionSelect');
+        const timerSelect = document.getElementById('timerSelect');
+        const mirrorEffect = document.getElementById('mirrorEffect');
+        const flashEffect = document.getElementById('flashEffect');
+        const gridOverlay = document.getElementById('gridOverlay');
+        const layoutSelect = document.getElementById('layoutSelect');
+        const qualityRange = document.getElementById('qualityRange');
+        const qualityValue = document.getElementById('qualityValue');
+        
+        // State variables
+        let currentStream = null;
+        let currentFilter = 'none';
+        let photos = JSON.parse(localStorage.getItem('photoboothPhotos')) || [];
+        let countdownInterval = null;
+        let settings = {
+            cameraMode: 'user',
+            resolution: 'fullhd',
+            timer: 5,
+            mirror: true,
+            flash: true,
+            grid: false,
+            layout: 'quad',
+            quality: 0.8
+        };
+        
+        // Initialize
+        function init() {
+            loadSettings();
+            initCamera();
+            updateGallery();
+            setupEventListeners();
+        }
+        
+        // Load settings from localStorage
+        function loadSettings() {
+            const savedSettings = JSON.parse(localStorage.getItem('photoboothSettings'));
+            if (savedSettings) {
+                settings = savedSettings;
+                applyUISettings();
+            }
+        }
+        
+        // Apply settings to UI
+        function applyUISettings() {
+            cameraModeSelect.value = settings.cameraMode;
+            resolutionSelect.value = settings.resolution;
+            timerSelect.value = settings.timer;
+            mirrorEffect.checked = settings.mirror;
+            flashEffect.checked = settings.flash;
+            gridOverlay.checked = settings.grid;
+            layoutSelect.value = settings.layout;
+            qualityRange.value = settings.quality;
+            qualityValue.textContent = `${settings.quality * 100}%`;
+            
+            // Apply mirror effect
+            video.style.transform = settings.mirror && settings.cameraMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+        
+        // Save settings to localStorage
+        function saveSettings() {
+            localStorage.setItem('photoboothSettings', JSON.stringify(settings));
+        }
+        
+        // Initialize camera
+        async function initCamera() {
+            // Stop any existing stream
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            
+            // Get resolution constraints
+            let constraints = {
+                video: {
+                    facingMode: settings.cameraMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
+            };
+            
+            // Adjust constraints based on selected resolution
+            switch(settings.resolution) {
+                case 'hd':
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
+                    break;
+                case 'ultrahd':
+                    constraints.video.width = { ideal: 3840 };
+                    constraints.video.height = { ideal: 2160 };
+                    break;
+                default: // fullhd
+                    constraints.video.width = { ideal: 1920 };
+                    constraints.video.height = { ideal: 1080 };
+            }
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                currentStream = stream;
+                
+                // Apply mirror effect if front camera
+                video.style.transform = settings.mirror && settings.cameraMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("Could not access camera. Please make sure you've granted permissions.");
+            }
+        }
+        
+        // Capture photo
+        function capturePhoto() {
+            if (settings.timer > 0) {
+                startCountdown();
+            } else {
+                takePhoto();
+            }
+        }
+        
+        // Start countdown
+        function startCountdown() {
+            let counter = settings.timer;
+            countdown.textContent = counter;
+            countdown.classList.add('active');
+            
+            countdownInterval = setInterval(() => {
+                counter--;
+                countdown.textContent = counter;
+                
+                if (counter <= 0) {
+                    clearInterval(countdownInterval);
+                    countdown.classList.remove('active');
+                    takePhoto();
+                }
+            }, 1000);
+        }
+        
+        // Take photo after countdown
+        function takePhoto() {
+            // Flash effect
+            if (settings.flash) {
+                flash.classList.add('active');
+                setTimeout(() => flash.classList.remove('active'), 300);
+            }
+            
+            // Set canvas dimensions
+            const width = video.videoWidth;
+            const height = video.videoHeight;
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw video frame to canvas
+            const ctx = canvas.getContext('2d');
+            
+            // Apply mirror effect if needed
+            if (settings.mirror && settings.cameraMode === 'user') {
+                ctx.translate(width, 0);
+                ctx.scale(-1, 1);
+            }
+            
+            ctx.drawImage(video, 0, 0, width, height);
+            
+            // Reset transform
+            if (settings.mirror && settings.cameraMode === 'user') {
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+            }
+            
+            // Apply selected filter
+            applyFilterToCanvas(currentFilter);
+            
+            // Apply selected layout
+            applyLayout();
+            
+            // Show canvas, hide video
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            
+            // Toggle buttons
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'block';
+            downloadBtn.style.display = 'block';
+            shareBtn.style.display = 'block';
+            
+            // Save to gallery
+            saveToGallery();
+        }
+        
+        // Apply filter to canvas
+        function applyFilterToCanvas(filter) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            
+            switch(filter) {
+                case 'vintage':
+                    // Vintage filter (sepia with vignette)
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        
+                        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                        data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                        data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+                        
+                        // Add vignette effect
+                        const x = (i / 4) % width;
+                        const y = Math.floor((i / 4) / width);
+                        const centerX = width / 2;
+                        const centerY = height / 2;
+                        const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                        const maxDistance = Math.sqrt(Math.pow(centerX, 2) + Math.pow(centerY, 2));
+                        const vignette = 1 - (distance / maxDistance) * 0.7;
+                        
+                        data[i] *= vignette;
+                        data[i + 1] *= vignette;
+                        data[i + 2] *= vignette;
+                    }
+                    break;
+                    
+                case 'blackwhite':
+                    // Black and white filter
+                    for (let i = 0; i < data.length; i += 4) {
+                        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                        data[i] = avg;
+                        data[i + 1] = avg;
+                        data[i + 2] = avg;
+                    }
+                    break;
+                    
+                case 'sepia':
+                    // Sepia filter
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        
+                        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                        data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                        data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+                    }
+                    break;
+                    
+                case 'cool':
+                    // Cool filter (blue tint)
+                    for (let i = 0; i < data.length; i += 4) {
+                        data[i] = data[i] * 0.8;
+                        data[i + 1] = data[i + 1] * 0.9;
+                    }
+                    break;
+                    
+                case 'warm':
+                    // Warm filter (red/yellow tint)
+                    for (let i = 0; i < data.length; i += 4) {
+                        data[i + 1] = data[i + 1] * 0.8;
+                        data[i + 2] = data[i + 2] * 0.7;
+                    }
+                    break;
+                    
+                case 'rainbow':
+                    // Rainbow effect
+                    for (let i = 0; i < data.length; i += 4) {
+                        const x = (i / 4) % width;
+                        const hue = (x / width) * 360;
+                        const rgb = hslToRgb(hue / 360, 0.8, 0.6);
+                        
+                        // Blend with original image
+                        data[i] = (data[i] + rgb[0]) / 2;
+                        data[i + 1] = (data[i + 1] + rgb[1]) / 2;
+                        data[i + 2] = (data[i + 2] + rgb[2]) / 2;
+                    }
+                    break;
+                    
+                case 'pixelate':
+                    // Pixelate effect
+                    const pixelSize = 10;
+                    for (let y = 0; y < height; y += pixelSize) {
+                        for (let x = 0; x < width; x += pixelSize) {
+                            // Get the average color of the pixel block
+                            let r = 0, g = 0, b = 0, count = 0;
+                            
+                            for (let py = 0; py < pixelSize && y + py < height; py++) {
+                                for (let px = 0; px < pixelSize && x + px < width; px++) {
+                                    const idx = ((y + py) * width + (x + px)) * 4;
+                                    r += data[idx];
+                                    g += data[idx + 1];
+                                    b += data[idx + 2];
+                                    count++;
+                                }
+                            }
+                            
+                            r = Math.floor(r / count);
+                            g = Math.floor(g / count);
+                            b = Math.floor(b / count);
+                            
+                            // Fill the pixel block with the average color
+                            for (let py = 0; py < pixelSize && y + py < height; py++) {
+                                for (let px = 0; px < pixelSize && x + px < width; px++) {
+                                    const idx = ((y + py) * width + (x + px)) * 4;
+                                    data[idx] = r;
+                                    data[idx + 1] = g;
+                                    data[idx + 2] = b;
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+        }
+        
+        // HSL to RGB conversion
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+        
+        // Apply selected layout
+        function applyLayout() {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Save the original image
+            const originalImage = new Image();
+            originalImage.src = canvas.toDataURL('image/jpeg', settings.quality);
+            
+            originalImage.onload = function() {
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                switch(settings.layout) {
+                    case 'single':
+                        // Single photo (original)
+                        ctx.drawImage(originalImage, 0, 0, width, height);
+                        break;
+                        
+                    case 'quad':
+                        // Quad layout (4 in 1)
+                        ctx.save();
+                        ctx.scale(0.5, 0.5);
+                        
+                        // Draw 4 smaller versions in each corner
+                        ctx.drawImage(originalImage, 0, 0, width, height, 0, 0, width, height);
+                        ctx.drawImage(originalImage, 0, 0, width, height, width, 0, width, height);
+                        ctx.drawImage(originalImage, 0, 0, width, height, 0, height, width, height);
+                        ctx.drawImage(originalImage, 0, 0, width, height, width, height, width, height);
+                        
+                        ctx.restore();
+                        break;
+                        
+                    case 'polaroid':
+                        // Polaroid style with white border
+                        const padding = 20;
+                        const polaroidWidth = width - padding * 2;
+                        const polaroidHeight = height - padding * 2 - 40; // Extra space at bottom
+                        
+                        // White background
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(padding, padding, polaroidWidth, polaroidHeight);
+                        
+                        // Draw image with small border
+                        const imgPadding = 5;
+                        ctx.drawImage(
+                            originalImage, 
+                            padding + imgPadding, 
+                            padding + imgPadding, 
+                            polaroidWidth - imgPadding * 2, 
+                            polaroidHeight - imgPadding * 2 - 40
+                        );
+                        
+                        // Add polaroid-like bottom area
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(padding, padding + polaroidHeight - 40, polaroidWidth, 40);
+                        
+                        // Add text (optional)
+                        ctx.fillStyle = '#333';
+                        ctx.font = '16px Poppins';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(new Date().toLocaleDateString(), width / 2, height - padding - 15);
+                        break;
+                        
+                    case 'collage':
+                        // Collage layout with multiple sizes
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, width, height);
+                        
+                        // Draw main image (larger)
+                        ctx.drawImage(originalImage, 50, 50, width - 300, height - 200);
+                        
+                        // Draw smaller images
+                        ctx.drawImage(originalImage, width - 230, 50, 180, 120);
+                        ctx.drawImage(originalImage, width - 230, 190, 180, 120);
+                        ctx.drawImage(originalImage, 50, height - 130, 180, 80);
+                        ctx.drawImage(originalImage, 250, height - 130, 180, 80);
+                        break;
+                }
+            };
+        }
+        
+        // Retake photo
+        function retakePhoto() {
+            // Show video, hide canvas
+            video.style.display = 'block';
+            canvas.style.display = 'none';
+            
+            // Toggle buttons
+            captureBtn.style.display = 'block';
+            retakeBtn.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            shareBtn.style.display = 'none';
+            
+            // Clear any active countdown
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdown.classList.remove('active');
+            }
+        }
+        
+        // Download photo
+        function downloadPhoto() {
+            const link = document.createElement('a');
+            link.download = `photobooth-${new Date().toISOString().slice(0, 10)}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', settings.quality);
+            link.click();
+        }
+        
+        // Share photo
+        async function sharePhoto() {
+            if (navigator.share) {
+                try {
+                    // Convert canvas to blob
+                    canvas.toBlob(async (blob) => {
+                        const file = new File([blob], 'photobooth.jpg', { type: 'image/jpeg' });
+                        
+                        await navigator.share({
+                            title: 'My Photobooth Picture',
+                            text: 'Check out this photo I took with the Photobooth app!',
+                            files: [file]
+                        });
+                    }, 'image/jpeg', settings.quality);
+                } catch (err) {
+                    console.error('Error sharing:', err);
+                    alert('Could not share the photo. You can download it instead.');
+                }
+            } else {
+                alert('Web Share API not supported in your browser. You can download the photo instead.');
+            }
+        }
+        
+        // Save to gallery
+        function saveToGallery() {
+            const photoData = canvas.toDataURL('image/jpeg', settings.quality);
+            photos.push(photoData);
+            localStorage.setItem('photoboothPhotos', JSON.stringify(photos));
+            updateGallery();
+        }
+        
+        // Update gallery display
+        function updateGallery() {
+            gallery.innerHTML = '';
+            
+            if (photos.length === 0) {
+                gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; opacity: 0.7;">No photos yet. Capture some moments!</p>';
+                return;
+            }
+            
+            photos.forEach((photo, index) => {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item';
+                
+                const img = document.createElement('img');
+                img.className = 'gallery-img';
+                img.src = photo;
+                
+                const actions = document.createElement('div');
+                actions.className = 'gallery-actions';
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'gallery-action-btn';
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+                downloadBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    downloadGalleryPhoto(index);
+                };
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'gallery-action-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteGalleryPhoto(index);
+                };
+                
+                actions.appendChild(downloadBtn);
+                actions.appendChild(deleteBtn);
+                
+                galleryItem.appendChild(img);
+                galleryItem.appendChild(actions);
+                
+                galleryItem.onclick = () => viewGalleryPhoto(index);
+                
+                gallery.appendChild(galleryItem);
+            });
+        }
+        
+        // View gallery photo
+        function viewGalleryPhoto(index) {
+            const photoData = photos[index];
+            
+            // Create a modal view
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.9)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+            modal.style.cursor = 'pointer';
+            
+            const img = document.createElement('img');
+            img.src = photoData;
+            img.style.maxWidth = '90%';
+            img.style.maxHeight = '90%';
+            img.style.objectFit = 'contain';
+            
+            modal.appendChild(img);
+            
+            // Close modal when clicked
+            modal.onclick = () => document.body.removeChild(modal);
+            
+            document.body.appendChild(modal);
+        }
+        
+        // Download gallery photo
+        function downloadGalleryPhoto(index) {
+            const link = document.createElement('a');
+            link.download = `photobooth-${index + 1}.jpg`;
+            link.href = photos[index];
+            link.click();
+        }
+        
+        // Delete gallery photo
+        function deleteGalleryPhoto(index) {
+            if (confirm('Delete this photo?')) {
+                photos.splice(index, 1);
+                localStorage.setItem('photoboothPhotos', JSON.stringify(photos));
+                updateGallery();
+            }
+        }
+        
+        // Clear gallery
+        function clearGallery() {
+            if (photos.length > 0 && confirm('Delete all photos in gallery?')) {
+                photos = [];
+                localStorage.removeItem('photoboothPhotos');
+                updateGallery();
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            captureBtn.addEventListener('click', capturePhoto);
+            retakeBtn.addEventListener('click', retakePhoto);
+            downloadBtn.addEventListener('click', downloadPhoto);
+            shareBtn.addEventListener('click', sharePhoto);
+            settingsBtn.addEventListener('click', () => settingsPanel.classList.add('open'));
+            closeSettingsBtn.addEventListener('click', () => settingsPanel.classList.remove('open'));
+            clearGalleryBtn.addEventListener('click', clearGallery);
+            
+            // Filter selection
+            filterOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove active class from all
+                    filterOptions.forEach(opt => opt.classList.remove('active'));
+                    
+                    // Add active class to selected
+                    option.classList.add('active');
+                    
+                    // Set current filter
+                    currentFilter = option.dataset.filter;
+                });
+            });
+            
+            // Set default filter as active
+            document.querySelector('.filter-option[data-filter="none"]').classList.add('active');
+            
+            // Settings change listeners
+            cameraModeSelect.addEventListener('change', () => {
+                settings.cameraMode = cameraModeSelect.value;
+                saveSettings();
+                initCamera();
+            });
+            
+            resolutionSelect.addEventListener('change', () => {
+                settings.resolution = resolutionSelect.value;
+                saveSettings();
+                initCamera();
+            });
+            
+            timerSelect.addEventListener('change', () => {
+                settings.timer = parseInt(timerSelect.value);
+                saveSettings();
+            });
+            
+            mirrorEffect.addEventListener('change', () => {
+                settings.mirror = mirrorEffect.checked;
+                saveSettings();
+                video.style.transform = settings.mirror && settings.cameraMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+            });
+            
+            flashEffect.addEventListener('change', () => {
+                settings.flash = flashEffect.checked;
+                saveSettings();
+            });
+            
+            gridOverlay.addEventListener('change', () => {
+                settings.grid = gridOverlay.checked;
+                saveSettings();
+                document.querySelector('.viewfinder').style.display = settings.grid ? 'block' : 'none';
+            });
+            
+            layoutSelect.addEventListener('change', () => {
+                settings.layout = layoutSelect.value;
+                saveSettings();
+            });
+            
+            qualityRange.addEventListener('input', () => {
+                settings.quality = parseFloat(qualityRange.value);
+                qualityValue.textContent = `${Math.round(settings.quality * 100)}%`;
+                saveSettings();
+            });
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
